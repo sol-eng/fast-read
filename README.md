@@ -1,24 +1,11 @@
----
-output: github_document
----
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-```{r setup, include = FALSE}
-library(tidyverse)
-library(vroom)
-library(data.table)
-
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
-```
-# Data ingestion and manipulation 
+# Data ingestion and manipulation
 
 ## Download and unpack data
 
-```{r}
+``` r
 if(!file.exists("flights.csv")) {
   download.file(
     "http://stat-computing.org/dataexpo/2009/2008.csv.bz2", 
@@ -34,19 +21,30 @@ if(!file.exists("flights.csv")) {
 
 ### readr
 
-```{r}
+``` r
 library(readr)
 
 tr <- system.time(
   flights_readr <- read_csv("flights.csv")  
 )
+#> Parsed with column specification:
+#> cols(
+#>   .default = col_double(),
+#>   UniqueCarrier = col_character(),
+#>   TailNum = col_character(),
+#>   Origin = col_character(),
+#>   Dest = col_character(),
+#>   CancellationCode = col_character()
+#> )
+#> See spec(...) for full column specifications.
 
 tr[[3]]
+#> [1] 26.233
 ```
 
 ### data.table
 
-```{r}
+``` r
 library(data.table)
 
 tdt <- system.time(
@@ -54,21 +52,30 @@ tdt <- system.time(
 )
 
 tdt[[3]]
+#> [1] 4.393
 ```
 
 ### vroom
 
-```{r}
+``` r
 tva <- system.time(
   flights_vroom_altrep <- vroom("flights.csv", altrep_opts = TRUE)
 )
+#> Observations: 7,009,728
+#> Variables: 29
+#> chr [ 5]: UniqueCarrier, TailNum, Origin, Dest, CancellationCode
+#> dbl [24]: Year, Month, DayofMonth, DayOfWeek, DepTime, CRSDepTime, ArrTime, CRSArrTim...
+#> 
+#> Call `spec()` for a copy-pastable column specification
+#> Specify the column types with `col_types` to quiet this message
 
 tva[[3]]
+#> [1] 2.264
 ```
 
 ### Results
 
-```{r}
+``` r
 library(tidyverse)
 
 comparison <- tibble(
@@ -78,9 +85,13 @@ comparison <- tibble(
 )
 
 comparison 
+#> # A tibble: 1 x 3
+#>   readr data.table vroom_altrep
+#>   <dbl>      <dbl>        <dbl>
+#> 1  26.2       4.39         2.26
 ```
 
-```{r}
+``` r
 comparison %>%
   gather() %>%
   ggplot() +
@@ -91,17 +102,34 @@ comparison %>%
   theme(legend.position = "none")
 ```
 
+![](README_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+
 ## Data manipulation
 
-```{r}
+``` r
 flights_readr %>% 
     group_by(Month) %>% 
     summarise(avg_delay = mean(ArrDelay, na.rm = TRUE))
+#> # A tibble: 12 x 2
+#>    Month avg_delay
+#>    <dbl>     <dbl>
+#>  1     1    10.2  
+#>  2     2    13.1  
+#>  3     3    11.2  
+#>  4     4     6.81 
+#>  5     5     5.98 
+#>  6     6    13.3  
+#>  7     7     9.98 
+#>  8     8     6.91 
+#>  9     9     0.698
+#> 10    10     0.415
+#> 11    11     2.02 
+#> 12    12    16.7
 ```
 
 ### Transformations
 
-```{r}
+``` r
 mr <- system.time(
   flights_readr %>% 
     group_by(Month) %>% 
@@ -119,7 +147,7 @@ mdt <- system.time(
 
 ### Results
 
-```{r}
+``` r
 comp <- tibble(
   readr = mr[[3]],
   `data.table` = mdt[[3]],
@@ -127,9 +155,13 @@ comp <- tibble(
 )
 
 comp
+#> # A tibble: 1 x 3
+#>   readr data.table vroom_altrep
+#>   <dbl>      <dbl>        <dbl>
+#> 1 0.226      0.311         1.33
 ```
 
-```{r}
+``` r
 comp %>%
   gather() %>%
   ggplot() +
@@ -140,6 +172,4 @@ comp %>%
   theme(legend.position = "none")
 ```
 
-
-
-
+![](README_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
