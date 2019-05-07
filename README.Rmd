@@ -1,0 +1,164 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r setup, include = FALSE}
+library(tidyverse)
+library(vroom)
+library(data.table)
+
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+# Data ingestion and manipulation 
+
+## Download and unpack data
+
+```{r}
+if(!file.exists("flights.csv")) {
+  download.file(
+    "http://stat-computing.org/dataexpo/2009/2008.csv.bz2", 
+    "flights.csv.bz2")
+  R.utils::bunzip2(
+    "flights.csv.bz2", 
+    "flights.csv")
+  unlink("flights.csv.bz2", force = TRUE)
+  }
+```
+
+## Read data
+
+### readr
+
+```{r}
+library(readr)
+
+tr <- system.time(
+  flights_readr <- read_csv("flights.csv")  
+)
+
+tr[[3]]
+```
+
+### vroom
+
+```{r}
+library(vroom)
+
+tv <- system.time(
+  flights_vroom <- vroom("flights.csv")  
+)
+
+tv[[3]]
+```
+
+### data.table
+
+```{r}
+library(data.table)
+
+tdt <- system.time(
+  flights_dt <- fread("flights.csv")  
+)
+
+tdt[[3]]
+```
+
+### vroom - The return
+
+```{r}
+tva <- system.time(
+  flights_vroom_altrep <- vroom("flights.csv", altrep_opts = TRUE)
+)
+
+tva[[3]]
+```
+
+### Results
+
+```{r}
+library(tidyverse)
+
+comparison <- tibble(
+  readr = tr[[3]],
+  vroom = tv[[3]],
+  `data.table` = tdt[[3]],
+  vroom_altrep = tva[[3]]
+)
+
+comparison 
+```
+
+```{r}
+comparison %>%
+  gather() %>%
+  ggplot() +
+  geom_col(aes(fct_reorder(key, value), value, fill = key)) +
+  coord_flip() +
+  labs(x = "", y = "") +
+  theme_bw() +
+  theme(legend.position = "none")
+```
+
+## Data manipulation
+
+```{r}
+flights_readr %>% 
+    group_by(Month) %>% 
+    summarise(avg_delay = mean(ArrDelay, na.rm = TRUE))
+```
+
+### Transformations
+
+```{r}
+mr <- system.time(
+  flights_readr %>% 
+    group_by(Month) %>% 
+    summarise(avg_delay = mean(ArrDelay, na.rm = TRUE))
+)
+mv <- system.time(
+  flights_vroom %>% 
+    group_by(Month) %>% 
+    summarise(avg_delay = mean(ArrDelay, na.rm = TRUE))
+)
+mva <- system.time(
+  flights_vroom_altrep %>% 
+    group_by(Month) %>% 
+    summarise(avg_delay = mean(ArrDelay, na.rm = TRUE))
+)
+mdt <- system.time(
+  flights_dt[!is.na(ArrDelay), .(avg_delay = mean(ArrDelay)), Month]
+)
+```
+
+### Results
+
+```{r}
+comp <- tibble(
+  readr = mr[[3]],
+  vroom = mv[[3]],
+  `data.table` = mdt[[3]],
+  vroom_altrep = mva[[3]]
+)
+
+comp
+```
+
+```{r}
+comp %>%
+  gather() %>%
+  ggplot() +
+  geom_col(aes(fct_reorder(key, value), value, fill = key)) +
+  coord_flip() +
+  labs(x = "", y = "") +
+  theme_bw() +
+  theme(legend.position = "none")
+```
+
+
+
+
