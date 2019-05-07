@@ -39,7 +39,7 @@ tr <- system.time(
 #> See spec(...) for full column specifications.
 
 tr[[3]]
-#> [1] 26.233
+#> [1] 21.748
 ```
 
 ### data.table
@@ -52,7 +52,7 @@ tdt <- system.time(
 )
 
 tdt[[3]]
-#> [1] 4.393
+#> [1] 3.717
 ```
 
 ### vroom
@@ -70,7 +70,7 @@ tva <- system.time(
 #> Specify the column types with `col_types` to quiet this message
 
 tva[[3]]
-#> [1] 2.264
+#> [1] 1.996
 ```
 
 ### Results
@@ -81,25 +81,26 @@ library(tidyverse)
 comparison <- tibble(
   readr = tr[[3]],
   `data.table` = tdt[[3]],
-  vroom_altrep = tva[[3]]
+  vroom = tva[[3]]
 )
 
 comparison 
 #> # A tibble: 1 x 3
-#>   readr data.table vroom_altrep
-#>   <dbl>      <dbl>        <dbl>
-#> 1  26.2       4.39         2.26
+#>   readr data.table vroom
+#>   <dbl>      <dbl> <dbl>
+#> 1  21.7       3.72  2.00
 ```
 
 ``` r
 comparison %>%
   gather() %>%
-  ggplot() +
-  geom_col(aes(fct_reorder(key, value), value, fill = key)) +
+  ggplot(aes(key, value, fill = key)) +
+  geom_col() +
+  geom_label(aes(label = paste0(round(value), " secs")), fill = "white") +
   coord_flip() +
-  labs(x = "", y = "") +
-  theme_bw() +
-  theme(legend.position = "none")
+  labs(title = "File read times", x = "", y = "") +
+  theme_minimal() +
+  theme(legend.position = "none", axis.text.x = element_blank())
 ```
 
 ![](README_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
@@ -151,25 +152,26 @@ mdt <- system.time(
 comp <- tibble(
   readr = mr[[3]],
   `data.table` = mdt[[3]],
-  vroom_altrep = mva[[3]]
+  vroom = mva[[3]]
 )
 
 comp
 #> # A tibble: 1 x 3
-#>   readr data.table vroom_altrep
-#>   <dbl>      <dbl>        <dbl>
-#> 1 0.226      0.311         1.33
+#>   readr data.table vroom
+#>   <dbl>      <dbl> <dbl>
+#> 1 0.232      0.212 0.536
 ```
 
 ``` r
 comp %>%
   gather() %>%
-  ggplot() +
-  geom_col(aes(fct_reorder(key, value), value, fill = key)) +
+  ggplot(aes(key, value, fill = key)) +
+  geom_col() +
+  geom_label(aes(label = paste0(round(value, 2), " secs")), fill = "white") +
   coord_flip() +
-  labs(x = "", y = "") +
-  theme_bw() +
-  theme(legend.position = "none")
+  labs(title = "Data manipulation times", x = "", y = "") +
+  theme_minimal() +
+  theme(legend.position = "none", axis.text.x = element_blank())
 ```
 
 ![](README_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->

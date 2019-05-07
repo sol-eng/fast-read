@@ -74,21 +74,22 @@ library(tidyverse)
 comparison <- tibble(
   readr = tr[[3]],
   `data.table` = tdt[[3]],
-  vroom_altrep = tva[[3]]
+  vroom = tva[[3]]
 )
 
 comparison 
 ```
 
-```{r}
+```{r, fig.width = 8, fig.height = 3}
 comparison %>%
   gather() %>%
-  ggplot() +
-  geom_col(aes(fct_reorder(key, value), value, fill = key)) +
+  ggplot(aes(key, value, fill = key)) +
+  geom_col() +
+  geom_label(aes(label = paste0(round(value), " secs")), fill = "white") +
   coord_flip() +
-  labs(x = "", y = "") +
-  theme_bw() +
-  theme(legend.position = "none")
+  labs(title = "File read times", x = "", y = "") +
+  theme_minimal() +
+  theme(legend.position = "none", axis.text.x = element_blank())
 ```
 
 ## Data manipulation
@@ -123,21 +124,22 @@ mdt <- system.time(
 comp <- tibble(
   readr = mr[[3]],
   `data.table` = mdt[[3]],
-  vroom_altrep = mva[[3]]
+  vroom = mva[[3]]
 )
 
 comp
 ```
 
-```{r}
+```{r, fig.width = 8, fig.height = 3}
 comp %>%
   gather() %>%
-  ggplot() +
-  geom_col(aes(fct_reorder(key, value), value, fill = key)) +
+  ggplot(aes(key, value, fill = key)) +
+  geom_col() +
+  geom_label(aes(label = paste0(round(value, 2), " secs")), fill = "white") +
   coord_flip() +
-  labs(x = "", y = "") +
-  theme_bw() +
-  theme(legend.position = "none")
+  labs(title = "Data manipulation times", x = "", y = "") +
+  theme_minimal() +
+  theme(legend.position = "none", axis.text.x = element_blank())
 ```
 
 
